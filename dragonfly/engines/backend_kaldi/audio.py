@@ -89,6 +89,8 @@ class MicAudio(object):
             callback=proxy_callback if not self.self_threaded else None,
         )
 
+        self.pause_recording = False
+
         if self.self_threaded:
             self.thread_cancelled = False
             self.thread = threading.Thread(target=self._reader_thread, args=(callback,))
@@ -111,10 +113,12 @@ class MicAudio(object):
                 # print('_reader_thread', read_available, len(in_data), overflowed, self.stream.blocksize)
                 if overflowed:
                     _log.warning("audio stream overflow")
+                if self.pause_recording:
+                    in_data[:] = bytearray(len(in_data))
                 callback(bytes(in_data))  # Must copy data from temporary C buffer!
             else:
                 time.sleep(0.001)
-                
+
     def _cancel_reader_thread(self):
         self.thread_cancelled = True
         if self.thread:
@@ -143,6 +147,12 @@ class MicAudio(object):
 
     def stop(self):
         self.stream.stop()
+
+    def pause(self):
+        self.pause_recording = True
+
+    def unpause(self):
+        self.pause_recording = False
 
     def read(self, nowait=False):
         """Return a block of audio data. If nowait==False, waits for a block if necessary; else, returns False immediately if no block is available."""
