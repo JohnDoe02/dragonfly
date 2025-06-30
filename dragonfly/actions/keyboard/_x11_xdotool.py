@@ -64,6 +64,9 @@ class XdotoolKeyboard(BaseX11Keyboard):
 
             # Instruct xdotool to sleep after the keyboard event if
             # necessary.
+
+            # workaround for very weird xdotool typing bug
+            arguments += ['sleep', '0.010' ]
             if timeout:
                 arguments += ['sleep', '%.3f' % timeout]
 
